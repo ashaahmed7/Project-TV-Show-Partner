@@ -15,12 +15,14 @@ searchTerm.addEventListener("keyup", applyFilters);
 select.addEventListener("change", applyFilters);
 
 // Fetch all episodes
-function fetchEpisodes() {
-  return fetch("https://api.tvmaze.com/shows/82/episodes").then(
-    function (data) {
-      return data.json();
-    },
-  );
+async function fetchEpisodes() {
+  const response = await fetch("https://api.tvmaze.com/shows/82/episodes");
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return await response.json();
 }
 
 // Filtering func
@@ -103,21 +105,19 @@ function populateOptions() {
 }
 
 // Initialize
-function init() {
-  // Initial message
+async function init() {
   displayEps.textContent = "Loading episodes...";
 
-  // Set timeout to render 2s after fetch has completed.
-  setTimeout(function () {
-    fetchEpisodes()
-      .then(function (allEpisodes) {
-        episodes = allEpisodes;
-        renderEpisodes(episodes);
-        populateOptions();
-      })
-      .catch(function (error) {
-        displayEps.textContent = `Error: ${error}. Please try again later.`;
-      });
+  setTimeout(async function () {
+    try {
+      const allEpisodes = await fetchEpisodes();
+      episodes = allEpisodes;
+
+      populateOptions();
+      renderEpisodes(episodes);
+    } catch (error) {
+      displayEps.textContent = `Error: ${error.message}. Please try again later.`;
+    }
   }, 2000);
 }
 
